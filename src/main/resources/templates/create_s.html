@@ -24,24 +24,24 @@
   <div class="form sd">
    <div class="title sd">Regist</div>
    <div class="form_box sd">
-    <form method="post" th:action="@{/main/create}">
+    <form method="post" th:action="@{/main/create}" th:object="${taskForm}">
      <div class="form_row sd">
       <p class="form_text sd">タイトル：</p>
       <div class="form_item">
-       <input type="text" name="title" class="item">
+       <input type="text" name="title" th:field="*{title}" class="item">
       </div>
      </div>
      <div class="form_row sd">
       <p class="form_text sd">日付：</p>
       <div class="form_item">
-       <input type="date" name="date"
-        th:value="${#temporals.format(date, 'yyyy-MM-dd')}" class="item">
+       <input type="date" name="date" th:field="*{date}"
+        th:value="${#temporals.format(date, 'yyyy/MM/dd')}" class="item">
       </div>
      </div>
      <div class="form_row sd">
       <p class="form_text sd">内容:</p>
       <div class="form_item">
-       <textarea name="text" cols="80" rows="10" class="item"></textarea>
+       <textarea name="text" th:field="*{text}" cols="80" rows="10" class="item"></textarea>
       </div>
      </div>
      <button class="form_button sd">

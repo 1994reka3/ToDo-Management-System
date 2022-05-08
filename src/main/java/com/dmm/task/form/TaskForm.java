@@ -8,10 +8,15 @@ import lombok.Data;
 
 @Data
 public class TaskForm {
+	
+	private Integer id;
+	
 	private String title;
 	
 	private String text;
 	
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate date;
+	
+	private Boolean done;   // 0がfalse, 1がtrue
 }

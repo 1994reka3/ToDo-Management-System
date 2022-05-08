@@ -67,4 +67,8 @@ public class AccountUserDetails implements UserDetails {
 		return user.getName();
 	}
 
+	public Object getRoleName() {
+		return user.getRoleName();
+	}
+
 }
