@@ -24,6 +24,6 @@ public class Tasks {
 	
 	private LocalDate date;
 	
-	private Boolean done;   // 0がfalse, 1がtrue
+	private Boolean done = Boolean.FALSE;   // 0がfalse, 1がtrue
 }
 

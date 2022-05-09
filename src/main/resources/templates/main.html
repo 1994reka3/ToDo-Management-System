@@ -79,15 +79,7 @@
     </div>
     
    <!--  確認用 ここから -->
-          <div>
-        <p>テスト表示</p>
-        <div th:each="task : ${tasks}">
-          <a th:href="@{/main/edit/{id}(id=${task.id})}">[[${task.title}]]</a>
-          <span th:text="${task.name}"></span>
-          <span th:text="${task.text}"></span>
-          <span th:text="${task.date}"></span>
-          <span th:text="${task.done}"></span>
-        </div>
+
         <!-- ここまで -->
     
     
