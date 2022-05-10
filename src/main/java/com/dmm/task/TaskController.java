@@ -2,6 +2,7 @@ package com.dmm.task;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,27 +30,32 @@ public class TaskController {
 
 	/**
 	 * タスク一覧（カレンダー）表示
+	 * @param date 表示年月日
+	 * @param month 表示月
+	 * @param matrix カレンダー
+	 * @param tasks タスク一覧
 	 *
 	 */
 	@GetMapping("/main")
 	public String getTasks(Model model, @AuthenticationPrincipal AccountUserDetails user,
 			@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-//		// カレンダー実装
-		if (date == null) {
-			// 今月で処理
-			date = LocalDate.now().withDayOfMonth(1); // その月の1日を取得
+		// カレンダー実装ここから
+		if (date == null) {    // 今月の場合
+			date = LocalDate.now().withDayOfMonth(1);    // その月の1日を取得
 		}
-		model.addAttribute("prev", date.minusMonths(1)); // ＜で前月取得
-		model.addAttribute("next", date.plusMonths(1));  // ＞で翌月取得
+		model.addAttribute("prev", date.minusMonths(1)); // 「＜」で前月取得
+		model.addAttribute("next", date.plusMonths(1));  // 「＞」で翌月取得
+		DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy年MM月");
+		model.addAttribute("month", f.format(date));  // 表示月
 
-		LocalDate d = date.withDayOfMonth(1);    // 表示月の1日
-		DayOfWeek firstWeek = d.getDayOfWeek();     // 表示月の1日の曜日
-		int firstWeekValue = firstWeek.getValue();       // 表示月の1日の曜日のvalueを取得
-		LocalDate day = d.minusDays(firstWeekValue); // 表示月の1日を含む1週目の日にち（日曜日）
-		LocalDate lastDay = d.plusDays(d.lengthOfMonth() - 1);      // 表示月の月末日
-		DayOfWeek lastWeek = lastDay.getDayOfWeek();   // 表示月の月末日の曜日
-		int lastWeekValue = lastWeek.getValue();    // 表示月の月末日の曜日の値
-		LocalDate day2 = lastDay.plusDays(6 - lastWeekValue);    // 表示月の月末日を含む最終週の土曜日
+		LocalDate firstDay = date.withDayOfMonth(1);        // 表示月の1日
+		DayOfWeek firstWeek = firstDay.getDayOfWeek();      // 表示月の1日の曜日
+		int firstWeekValue = firstWeek.getValue();          // 表示月の1日の曜日のvalueを取得
+		LocalDate day = firstDay.minusDays(firstWeekValue); // 表示月の1日を含む1週目の日にち（日曜日）
+		LocalDate lastDay = firstDay.plusDays(firstDay.lengthOfMonth() - 1);   // 表示月の月末日
+		DayOfWeek lastWeek = lastDay.getDayOfWeek();        // 表示月の月末日の曜日
+		int lastWeekValue = lastWeek.getValue();            // 表示月の月末日の曜日の値
+		LocalDate lastSat = lastDay.plusDays(6 - lastWeekValue);   // 表示月の月末日を含む最終週の土曜日
 		
 		List<List<LocalDate>> matrix = new ArrayList<>(); // 1月のリスト
 		while (true) {   // 1月リストの作成ループ
@@ -57,33 +63,34 @@ public class TaskController {
 			while (true) {   // 1週間リストの作成ループ
 				week.add(day);
 				DayOfWeek strWeek = day.getDayOfWeek();
-				if (strWeek == DayOfWeek.SATURDAY) {
-					if (week.contains(d) == false) {
-						break;
-					}
+				LocalDate weekLastDay = week.get(week.size()-1);
+				if (strWeek == DayOfWeek.SATURDAY && weekLastDay.isBefore(firstDay) == true) {
+					break;  // 土曜日かつ1週間リストの最後の日付が1日より小さい場合は1週間ループを抜ける
+				} else if(strWeek == DayOfWeek.SATURDAY) {
 					matrix.add(week);    // 土曜日の場合は1週間のリストを1月のリストに追加
-					break;  // 1週間リストの作成ループを抜けて1月リストの作成ループにいく
+					break;  // 1週間ループを抜ける
 				}
 				day = day.plusDays(1);
 			}
 			day = day.plusDays(1);
-			if (week.contains(day2)) {
-				break;
+			if (week.contains(lastSat)) {
+				break;   // 月末日が1週間リストに含まれていたら1月ループを抜ける
 			}
 		}
 		model.addAttribute("matrix", matrix);
-
+		// カレンダー実装ここまで
+		
 		// タスク一覧表示
 		List<Tasks> task;
 		if (user.getRoleName().equals("ADMIN")) {
-			task = tasksRepo.findAll(); // 管理者ログイン時は全タスク表示
+			task = tasksRepo.findByDateBetweenAdmin(firstDay, lastDay); // 管理者ログイン時は全タスク表示
 		} else {
-			task = tasksRepo.findByName(user.getName()); // ユーザーログイン時はログインユーザーのタスクのみ表示
+			task = tasksRepo.findByDateBetweenUser(firstDay, lastDay, user.getName()); // ユーザーログイン時はログインユーザーのタスクのみ表示
 		}
+		
 		MultiValueMap<LocalDate, Tasks> tasks = new LinkedMultiValueMap<>();
-
 		for (Tasks t : task) {
-			tasks.add(t.getDate(), t);
+			tasks.add(t.getDate(), t);  // key＝タスクの日付 value＝タスクオブジェクト
 		}
 		model.addAttribute("tasks", tasks);
 		return "main";
@@ -91,13 +98,11 @@ public class TaskController {
 
 	/**
 	 * タスク登録
-	 * 
+	 * @param date 表示年月日
 	 * @param taskForm 送信データ
 	 * @return 登録画面
 	 */
 	@GetMapping("/main/create/{date}")
-	// public String create(Model model, @PathVariable @DateTimeFormat(pattern =
-	// "yyyy-MM-dd") LocalDate date)
 	public String getNewTask(Model model, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 		TaskForm taskForm = new TaskForm();
 		model.addAttribute("taskForm", taskForm);
@@ -119,9 +124,8 @@ public class TaskController {
 
 	/**
 	 * タスク編集
-	 * 
-	 * @param タスクID
-	 * @param タスク情報
+	 * @param id タスクID
+	 * @param task タスク情報
 	 * @return 編集画面
 	 */
 	@GetMapping("/main/edit/{id}")
@@ -144,9 +148,8 @@ public class TaskController {
 
 	/**
 	 * タスク削除
-	 * 
 	 * @param id タスクID
-	 * @return 遷移先
+	 * @return カレンダー画面
 	 */
 	@PostMapping("/main/delete/{id}")
 	public String delete(@PathVariable Integer id) {
