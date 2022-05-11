@@ -11,9 +11,6 @@ import com.dmm.task.data.entity.Tasks;
 
 public interface TasksRepository extends JpaRepository<Tasks, Integer>{
 	
-	// ユーザー名検索
-	List<Tasks> findByName(String name); 
-	
 	// ログインユーザーのタスク一覧取得
 	@Query("select a from Tasks a where a.date between :from and :to and name = :name")
 	List<Tasks> findByDateBetweenUser(@Param("from") LocalDate from, @Param("to") LocalDate to, @Param("name") String name);

@@ -85,7 +85,7 @@ public class TaskController {
 		if (user.getRoleName().equals("ADMIN")) {
 			task = tasksRepo.findByDateBetweenAdmin(firstDay, lastDay); // 管理者ログイン時は全タスク表示
 		} else {
-			task = tasksRepo.findByDateBetweenUser(firstDay, lastDay, user.getName()); // ユーザーログイン時はログインユーザーのタスクのみ表示
+			task = tasksRepo.findByDateBetweenUser(firstDay, lastDay, user.getUsername()); // ユーザーログイン時はログインユーザーのタスクのみ表示
 		}
 		
 		MultiValueMap<LocalDate, Tasks> tasks = new LinkedMultiValueMap<>();
@@ -113,7 +113,7 @@ public class TaskController {
 	@PostMapping("/main/create")
 	public String create(TaskForm taskForm, @AuthenticationPrincipal AccountUserDetails user) {
 		Tasks task = new Tasks();
-		task.setName(user.getName());
+		task.setName(user.getUsername());
 		task.setTitle(taskForm.getTitle());
 		task.setDate(taskForm.getDate());
 		task.setText(taskForm.getText());
