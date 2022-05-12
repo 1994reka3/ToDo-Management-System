@@ -129,21 +129,29 @@ public class TaskController {
 	 * @return 編集画面
 	 */
 	@GetMapping("/main/edit/{id}")
-	public String edit(@PathVariable Integer id, Model model) {
+	public String edit(@PathVariable Integer id, Model model, @AuthenticationPrincipal AccountUserDetails user) {
 		Tasks task = tasksRepo.getById(id);
-		model.addAttribute("task", task);
-		return "edit";
+		if (task.getName().equals(user.getUsername())) {
+			model.addAttribute("task", task);
+			return "edit";
+		} else {
+			return "redirect:/main";  // ログインユーザーのタスクではない場合カレンダー画面へ繊維
+		}
 	}
 
 	@PostMapping("/main/edit/{id}")
-	public String update(@PathVariable Integer id, TaskForm taskForm) {
+	public String update(@PathVariable Integer id, TaskForm taskForm, @AuthenticationPrincipal AccountUserDetails user) {
 		Tasks task = tasksRepo.getById(id);
-		task.setTitle(taskForm.getTitle());
-		task.setDate(taskForm.getDate());
-		task.setText(taskForm.getText());
-		task.setDone(taskForm.getDone());
-		tasksRepo.save(task);
-		return "redirect:/main";
+		if (task.getName().equals(user.getUsername())) {
+			task.setTitle(taskForm.getTitle());
+			task.setDate(taskForm.getDate());
+			task.setText(taskForm.getText());
+			task.setDone(taskForm.getDone());
+			tasksRepo.save(task);
+			return "redirect:/main";
+		} else {
+			return "redirect:/main";  // ログインユーザーのタスクではない場合カレンダー画面へ繊維
+		}
 	}
 
 	/**
