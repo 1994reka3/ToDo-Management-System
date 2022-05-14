@@ -13,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -111,7 +113,10 @@ public class TaskController {
 	}
 
 	@PostMapping("/main/create")
-	public String create(TaskForm taskForm, @AuthenticationPrincipal AccountUserDetails user) {
+	public String create(@Validated TaskForm taskForm, BindingResult bindingResult, @AuthenticationPrincipal AccountUserDetails user) {
+		if (bindingResult.hasErrors()) {  // バリデーションのエラーチェック
+			return "create";  // エラーがある場合は登録画面に遷移
+		}
 		Tasks task = new Tasks();
 		task.setName(user.getUsername());
 		task.setTitle(taskForm.getTitle());
@@ -129,7 +134,7 @@ public class TaskController {
 	 * @return 編集画面
 	 */
 	@GetMapping("/main/edit/{id}")
-	public String edit(@PathVariable Integer id, Model model, @AuthenticationPrincipal AccountUserDetails user) {
+	public String edit(@PathVariable Integer id, TaskForm taskForm, Model model, @AuthenticationPrincipal AccountUserDetails user) {
 		Tasks task = tasksRepo.getById(id);
 		if (task.getName().equals(user.getUsername())) {
 			model.addAttribute("task", task);
@@ -140,15 +145,19 @@ public class TaskController {
 	}
 
 	@PostMapping("/main/edit/{id}")
-	public String update(@PathVariable Integer id, TaskForm taskForm, @AuthenticationPrincipal AccountUserDetails user) {
+	public String update(@PathVariable Integer id, Model model, @Validated TaskForm taskForm, BindingResult bindingResult, @AuthenticationPrincipal AccountUserDetails user) {
 		Tasks task = tasksRepo.getById(id);
 		if (task.getName().equals(user.getUsername())) {
-			task.setTitle(taskForm.getTitle());
-			task.setDate(taskForm.getDate());
-			task.setText(taskForm.getText());
-			task.setDone(taskForm.getDone());
-			tasksRepo.save(task);
-			return "redirect:/main";
+			if (bindingResult.hasErrors()) {  // バリデーションのエラーチェック
+				return edit(task.getId(), taskForm, model, user);  // エラーがある場合は編集画面に遷移
+			} else {
+				task.setTitle(taskForm.getTitle());
+				task.setDate(taskForm.getDate());
+				task.setText(taskForm.getText());
+				task.setDone(taskForm.getDone());
+				tasksRepo.save(task);
+				return "redirect:/main";
+			}
 		} else {
 			return "redirect:/main";  // ログインユーザーのタスクではない場合カレンダー画面へ繊維
 		}

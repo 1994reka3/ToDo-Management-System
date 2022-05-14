@@ -22,13 +22,13 @@
  <div class="form_back sd">
   <div class="form sd">
    <div class="title sd">Edit</div>
-   <form method="post" th:action="@{/main/edit/{id}(id=${task.id})}">
+   <form method="post" th:action="@{/main/edit/{id}(id=${task.id})}" th:object="${taskForm}">
     <div class="sd">
      <div class="form_row sd">
       <p class="form_text sd">タイトル：</p>
       <div class="form_item">
-       <input type="text" name="title" class="item"
-        th:value="${task.title}">
+       <input type="text" name="title" class="item" th:value="${task.title}">
+       <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
       </div>
      </div>
      <div class="form_row sd">
@@ -37,13 +37,14 @@
        <input type="date" name="date"
         th:value="${#temporals.format(task.date, 'yyyy-MM-dd')}"
         class="item">
+        <span th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></span>
       </div>
      </div>
      <div class="form_row sd">
       <p class="form_text sd">内容:</p>
       <div class="form_item">
-       <textarea name="text" cols="80" rows="10" class="item"
-        th:text="${task.text}"></textarea>
+       <textarea name="text" cols="80" rows="10" class="item" th:text="${task.text}" style="width: 95%;"></textarea>
+       <span th:if="${#fields.hasErrors('text')}" th:errors="*{text}"></span>
       </div>
      </div>
      <div class="form_row sd">
