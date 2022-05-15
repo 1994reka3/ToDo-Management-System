@@ -198,7 +198,7 @@ a.prevnext:-webkit-any-link {
  padding: 5px;
 }
 
-.display_title {
+.display_title {  /* 三点リーダー */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;

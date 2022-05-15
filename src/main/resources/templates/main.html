@@ -68,9 +68,9 @@
       <div>
        <a th:href="@{/main/create/{date}(date=${day})}">[[${day.dayOfMonth}]]</a>
       </div>
-      <div th:each="t : ${tasks.get(day)}">
+      <div th:each="t : ${tasks.get(day)}" class="display_title">
        <a th:if="${t}" th:href="@{/main/edit/{id}(id=${t.id})}">
-       <span th:if="${t.done}">✅</span><span class="display_title" th:text="${t.title}"></span></a>
+       <span th:if="${t.done}">✅</span><span th:text="${t.title}"></span></a>
       </div>
      </div>
     </div> 
