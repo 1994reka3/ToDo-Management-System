@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Error</title>
+</head>
+<body>
+  <h1 th:text="${status} + ' ' + ${error}"></h1>
+  <p>エラーが発生しました。</p>
+  <p>カレンダーに戻って下さい。</p>
+  <a th:href="@{/main}" class="text">カレンダーに戻る</a>
+</body>
+</html>
